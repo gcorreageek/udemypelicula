@@ -1,8 +1,8 @@
- 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:proy_udemy_peliculas/models/actores_model.dart';
 import 'package:proy_udemy_peliculas/models/pelicula_model.dart';
 
 class PeliculasProvider {
@@ -13,14 +13,16 @@ class PeliculasProvider {
   int _popularesPage = 1;
   bool _cargando = false;
   List<Pelicula> _populares = new List();
-  final _popularesStreamController = StreamController<List<Pelicula>>.broadcast();
+  final _popularesStreamController =
+      StreamController<List<Pelicula>>.broadcast();
 
-  Function(List<Pelicula>) get popularesSink => _popularesStreamController.sink.add;
+  Function(List<Pelicula>) get popularesSink =>
+      _popularesStreamController.sink.add;
 
-  Stream<List<Pelicula>> get popularesStream => _popularesStreamController.stream;
+  Stream<List<Pelicula>> get popularesStream =>
+      _popularesStreamController.stream;
 
-
-  void disposeStreams(){
+  void disposeStreams() {
     _popularesStreamController?.close();
   }
 
@@ -40,7 +42,7 @@ class PeliculasProvider {
   }
 
   Future<List<Pelicula>> getPopulares() async {
-    if(_cargando) return [];
+    if (_cargando) return [];
     _cargando = true;
     _popularesPage++;
     print('Cargando...');
@@ -54,5 +56,18 @@ class PeliculasProvider {
     popularesSink(_populares);
     _cargando = false;
     return resp;
+  }
+// /movie/{movie_id}/credits
+  Future<List<Actor>> getCast(String peliculaId) async {
+    final url = Uri.https(_url, '3/movie/$peliculaId/credits',{
+      'api_key': _apikey,
+      'language': _lenguaje,
+    });
+    final resp = await http.get(url);
+    final decodeData = json.decode(resp.body);
+    final cast = new Cast.fromJsonList(decodeData['cast']);
+
+    return cast.actores;
+
   }
 }
